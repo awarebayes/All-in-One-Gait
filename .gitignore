@@ -1,7 +1,8 @@
-$ cat .gitignore
 /.idea/
 */__pycache__
 .DS_Store
 **/.DS_Store
 .DS_Store?
-
+OpenGait/demo/checkpoints
+OpenGait/demo/output
+temp/

@@ -13,7 +13,7 @@ class Predictor(object):
         trt_file=None,
         decoder=None,
         device=torch.device("cpu"),
-        fp16=False
+        fp16=True
     ):
         self.model = model
         self.decoder = decoder
@@ -22,7 +22,7 @@ class Predictor(object):
         self.nmsthre = exp.nmsthre
         self.test_size = exp.test_size
         self.device = device
-        self.fp16 = fp16
+        self.fp16 = True
         if trt_file is not None:
             from torch2trt import TRTModule
             model_trt = TRTModule()

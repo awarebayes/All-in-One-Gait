@@ -5,15 +5,26 @@
 import importlib
 import os
 import sys
+import imp
 
+def load_from_file(filepath):
+    class_inst = None
+    expected_class = 'MyClass'
+
+    mod_name,file_ext = os.path.splitext(os.path.split(filepath)[-1])
+
+    if file_ext.lower() == '.py':
+        py_mod = imp.load_source(mod_name, filepath)
+
+    elif file_ext.lower() == '.pyc':
+        py_mod = imp.load_compiled(mod_name, filepath)
+
+    return py_mod
 
 def get_exp_by_file(exp_file):
-    try:
-        sys.path.append(os.path.dirname(exp_file))
-        current_exp = importlib.import_module(os.path.basename(exp_file).split(".")[0])
-        exp = current_exp.Exp()
-    except Exception:
-        raise ImportError("{} doesn't contains class named 'Exp'".format(exp_file))
+    path = os.path.abspath(os.path.join(os.getcwd(), exp_file))
+    current_exp = load_from_file(path)
+    exp = current_exp.Exp()
     return exp
 
 

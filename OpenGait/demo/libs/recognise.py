@@ -2,6 +2,9 @@ import os
 import os.path as osp
 import pickle
 import sys
+
+import torch
+
 # import shutil
 
 root = os.path.dirname(os.path.dirname(os.path.dirname( os.path.abspath(__file__) )))
@@ -51,7 +54,9 @@ def gait_sil(sils, embs_save_path):
         if not os.path.exists(embs_pkl_path):
             os.makedirs(embs_pkl_path)
         embs_pkl_name = "{}/{}.pkl".format(embs_pkl_path, inputs[3][0])
-        retval, embs = gaitmodel.forward(ipts)
+
+        with torch.no_grad():
+            retval, embs = gaitmodel.forward(ipts)
         pkl = open(embs_pkl_name, 'wb')
         pickle.dump(embs, pkl)
         feat = {}

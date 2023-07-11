@@ -5,8 +5,6 @@ import cv2
 from pathlib import Path
 import shutil
 import torch
-import math
-import numpy as np
 from tqdm import tqdm
 
 from tracking_utils.predictor import Predictor
@@ -15,9 +13,7 @@ from loguru import logger
 from tracker.byte_tracker import BYTETracker
 from tracking_utils.timer import Timer
 from tracking_utils.visualize import plot_tracking, plot_track
-from pretreatment import pretreat, imgs2inputs
 sys.path.append((os.path.dirname(os.path.abspath(__file__) )) + "/paddle/")
-from seg_demo import seg_image
 from yolox.exp import get_exp
 
 track_cfgs = {  
@@ -57,10 +53,19 @@ def loadckpt(exp):
     model = model.half()
     return model
 
-exp = get_exp(track_cfgs["model"]["exp_file"], None)
-model = loadckpt(exp)
+model = None
+exp = None
+
+def cleanup():
+    del model
+    del exp
 
 def track(video_path, video_save_folder):
+    global exp
+    global model
+    if exp is None or model is None:
+        exp = get_exp(track_cfgs["model"]["exp_file"], None)
+        model = loadckpt(exp)
     """Tracks person in the input video
 
     Args:
@@ -79,10 +84,10 @@ def track(video_path, video_save_folder):
     height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)  # float
     frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-    tracker = BYTETracker(frame_rate=30)
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    tracker = BYTETracker(frame_rate=fps)
     timer = Timer()
     frame_id = 0
-    fps = cap.get(cv2.CAP_PROP_FPS)
     os.makedirs(video_save_folder, exist_ok=True)
     save_video_name = video_path.split("/")[-1]
     save_video_path = osp.join(video_save_folder, save_video_name)
@@ -155,6 +160,10 @@ def writeresult(pgdict, video_path, video_save_folder):
         video_path (Path): Path of input video
         video_save_folder (Path): Tracking video storage root path after processing
     """
+    global exp
+    if exp is None:
+        exp = get_exp(track_cfgs["model"]["exp_file"], None)
+        model = loadckpt(exp)
     device = torch.device("cuda" if track_cfgs["device"] == "gpu" else "cpu")
     trt_file = None
     decoder = None

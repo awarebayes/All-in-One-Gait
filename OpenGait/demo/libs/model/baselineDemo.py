@@ -410,8 +410,11 @@ class BaselineDemo(nn.Module):
             sils = sils.unsqueeze(1)
 
         del ipts
-        outs = self.Backbone(sils)  # [n, c, s, h, w]
+        if seqL > 128:
+            seqL = torch.tensor([[128]])
+            sils = sils[:, :, :128]
 
+        outs = self.Backbone(sils)  # [n, c, s, h, w]
         # Temporal Pooling, TP
         outs = self.TP(outs, seqL, options={"dim": 2})[0]  # [n, c, h, w]
         # Horizontal Pooling Matching, HPM
